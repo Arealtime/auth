@@ -12,6 +12,10 @@ class AuthController extends Controller
 
     public function __construct(private readonly AuthService $authService) {}
 
+    /**
+     * @param LoginRequest $request
+     * @return JsonResponse
+     */
     public function login(LoginRequest $request)
     {
         return $this->authService->setData([
@@ -20,6 +24,11 @@ class AuthController extends Controller
         ])->login();
     }
 
+    /**
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function logout(Request $request)
     {
         return $this->authService->logout($request);

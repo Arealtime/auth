@@ -3,7 +3,6 @@
 namespace Arealtime\Auth\App\Services;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -11,12 +10,20 @@ class AuthService
 {
     private array $data;
 
+    /**
+     *
+     * @param array<string, mixed> $data
+     * @return $this
+     */
     public function setData(array $data)
     {
         $this->data = $data;
         return $this;
     }
 
+    /**
+     * @return JsonResponse
+     */
     public function login()
     {
         $userModel = config('arealtime-auth.user_model');
@@ -43,6 +50,11 @@ class AuthService
         }
     }
 
+    /**
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
