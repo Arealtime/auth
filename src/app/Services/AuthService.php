@@ -2,7 +2,8 @@
 
 namespace Arealtime\Auth\App\Services;
 
-use Arealtime\Auth\App\Console\Commands\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -12,39 +13,41 @@ class AuthService
 
     public function setData(array $data)
     {
-        return $this->data = $data;
+        $this->data = $data;
+        return $this;
     }
 
     public function login()
     {
         $userModel = config('arealtime-auth.user_model');
-        $user = $userModel::where('username', $this->data['username']);
+        $user = $userModel::where('name', $this->data['username'])->first();
 
         if (empty($user)) {
-            return response()->json(['message' => 'Unauthorized'])->setStatusCode(Response::HTTP_NOT_FOUND);
+            return response()->json(['message' => __('auth::messages.not-found')])->setStatusCode(Response::HTTP_NOT_FOUND);
         } else if (!Hash::check($this->data['password'], $user->password)) {
-            return response()->json(['message' => 'Unauthorized'])->setStatusCode(Response::HTTP_NOT_FOUND);
-        } else {
 
-            Auth::login($user);
+            return response()->json(['message' => __('auth::messages.not-found')])->setStatusCode(Response::HTTP_NOT_FOUND);
+        } else {
+            $token = $user->createToken(config('arealtime-auth.create_token'))->plainTextToken;
+
+            auth()->login($user);
 
             return response()->json([
-                'message' => 'Login',
+                'message' => __('auth::messages.success.login'),
+                'token' => $token
             ])
-                ->withCookie(config('arealtime-auth.access_token_name'), config('arealtime-auth.jwt.ttl'))
-                ->withCookie(config('arealtime-auth.refresh_token_name'), Auth::user()->createRefreshToken(), config('arealtime-auth.jwt.refresh_ttl'));
+                ->withCookie(
+                    config('arealtime-auth.access_token_name'),
+                    config('arealtime-auth.jwt.ttl')
+                );
         }
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::user()->revokeTokensByJwtToken();
+        $request->user()->currentAccessToken()->delete();
 
-        Auth::logout();
-
-        return response()->json([
-            'message' => 'Logout'
-        ])
+        return response()->json(['message' => __('auth::messages.success.logout')])
             ->withoutCookie(config('arealtime-auth.access_token_name'))
             ->withoutCookie(config('arealtime-auth.refresh_token_name'));
     }

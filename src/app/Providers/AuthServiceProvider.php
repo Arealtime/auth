@@ -8,11 +8,15 @@ class AuthServiceProvider extends ServiceProvider
 {
     public function register()
     {
-        // Register bindings
+        $this->mergeConfigFrom(
+            __DIR__ . '/../../config/arealtime-auth.php',
+            'arealtime-auth'
+        );
     }
 
     public function boot()
     {
-        // Bootstrapping
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
+        $this->loadTranslationsFrom(__DIR__ . '/../../lang', 'auth');
     }
 }
